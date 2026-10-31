@@ -1,0 +1,35 @@
+---
+description: Nobook Android conventions that always apply
+alwaysApply: true
+---
+
+# Nobook
+
+Native Kotlin + Jetpack Compose (Material 3) Facebook browser. Package `com.ycngmn.nobook`. minSdk 23, compile/target SDK 36. Full notes are in `AGENTS.md`.
+
+## Stack (do not add others unless asked)
+Kotlin, coroutines/Flow, Compose, Material 3, DataStore, Ktor + OkHttp, Compose WebView, scripts in `res/raw`, JS bridges in `utils/jsBridge`. Gradle Kotlin DSL and `gradle/libs.versions.toml`.
+
+Not in the project: Hilt, Room, Retrofit, Navigation Compose, Coil, kotlinx.serialization.
+
+## Layout
+`data/local`, `ui/components`, `ui/screens`, `ui/theme`, `ui/viewmodel`, `utils/jsBridge`. One screen = `XScreen.kt`, `XViewModel.kt`, `XUiState.kt`.
+
+## Code
+- 4-space indent, max line length 120. Code and comments in English.
+- Stateless composables where possible. Hoist state. First optional param: `modifier: Modifier = Modifier`.
+- ViewModels expose `StateFlow<UiState>` only. Collect with `collectAsStateWithLifecycle()`.
+- No business logic in composables or Activities. Immutable `data class` / `sealed interface` for state and events.
+- Disk and network off the main thread (`Dispatchers.IO`).
+- Strings in `strings.xml` for English (`values/`) and Thai (`values-th/`). Colors and sizes from theme tokens.
+- New dependencies go in `libs.versions.toml`, then `libs.*`. Do not change Gradle plugin or SDK versions unless asked.
+- Do not add UI or restyle areas that were not requested.
+
+## Security
+No secrets, API keys, or keystores in git. `local.properties` / gitignored `gradle.properties` / `BuildConfig` only. `*.jks`, `*.keystore`, and `keystore.properties` stay gitignored. HTTPS only. Minimum permissions. Keep R8 rules in `proguard-rules.pro`.
+
+## Workflow
+Outline large changes and list files first. Keep each step compiling. After edits, name the Gradle command to run (`gradlew.bat` on Windows): `assembleDebug`, `test`, `lint`. Fix build errors at the root cause; do not suppress lint. Ask before new layers, libraries, or permissions.
+
+## Done
+`assembleDebug` succeeds, no new lint errors, unit tests updated, EN + TH strings extracted.

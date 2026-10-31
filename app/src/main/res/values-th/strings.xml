@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="share_to_other_apps">แชร์ไปยังแอปอื่น</string>
+    <string name="text_copied_to_clipboard">คัดลอกข้อความแล้ว</string>
+    <string name="failed_to_copy_text">คัดลอกข้อความไม่สำเร็จ</string>
+</resources>

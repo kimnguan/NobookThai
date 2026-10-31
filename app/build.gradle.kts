@@ -44,6 +44,7 @@ extensions.configure<ApplicationExtension> {
     }
 
     buildFeatures {
+        buildConfig = true
         compose = true
     }
 }

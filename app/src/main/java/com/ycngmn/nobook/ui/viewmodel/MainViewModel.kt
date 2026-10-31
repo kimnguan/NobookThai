@@ -39,7 +39,9 @@ class MainViewModel(
         settings: SettingsViewModel
     ) {
         val scripts = listOf(
+            Script(true, R.raw.wordcut, "wordcut.js"),
             Script(true, R.raw.scripts, "scripts.js"), // always apply
+            Script(true, R.raw.photo_viewer_layout, "photo_viewer_layout.js"),
             Script(settings.removeAds.value, R.raw.adblock, "adblock.js"),
             Script(settings.enableDownloadContent.value, R.raw.download_content, "download_content.js"),
             Script(settings.enableCopyToClipboard.value, R.raw.copy_to_clipboard, "copy_to_clipboard.js"),
@@ -47,6 +49,7 @@ class MainViewModel(
             Script(!settings.pinchToZoom.value, R.raw.pinch_to_zoom, "pinch_to_zoom.js"),
             Script(settings.amoledBlack.value, R.raw.amoled_black, "amoled_black.js"),
             Script(settings.hideSuggested.value, R.raw.hide_suggested, "hide_suggested.js"),
+            Script(settings.hideAiContent.value, R.raw.hide_ai_content, "hide_ai_content.js"),
             Script(settings.hideReels.value, R.raw.hide_reels, "hide_reels.js"),
             Script(settings.hideStories.value, R.raw.hide_stories, "hide_stories.js"),
             Script(settings.hidePeopleYouMayKnow.value, R.raw.hide_pymk, "hide_pymk.js"),

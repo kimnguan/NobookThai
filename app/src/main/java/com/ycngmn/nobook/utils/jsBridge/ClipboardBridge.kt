@@ -7,6 +7,8 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.util.Base64
 import android.webkit.JavascriptInterface
 import android.widget.Toast
@@ -16,6 +18,42 @@ import java.io.File
 import java.io.FileOutputStream
 
 class ClipboardBridge(private val context: Context) {
+    private val mainHandler = Handler(Looper.getMainLooper())
+
+    @JavascriptInterface
+    fun copyText(text: String) {
+        val trimmed = text.trim()
+        if (trimmed.isEmpty()) {
+            mainHandler.post {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.failed_to_copy_text),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            return
+        }
+
+        mainHandler.post {
+            runCatching {
+                val clipboardManager =
+                    context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                clipboardManager.setPrimaryClip(ClipData.newPlainText("Nobook", trimmed))
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.text_copied_to_clipboard),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }.onFailure {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.failed_to_copy_text),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
     @JavascriptInterface
     fun copyImageToClipboard(base64Data: String, mimeType: String) {
         runCatching {
