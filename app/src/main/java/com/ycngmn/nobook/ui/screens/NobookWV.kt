@@ -1,18 +1,22 @@
 package com.ycngmn.nobook.ui.screens
 
 import android.content.Intent
+import android.util.Log
 import android.view.View
 import android.webkit.CookieManager
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -21,15 +25,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalResources
 import androidx.core.graphics.ColorUtils
 import androidx.core.net.toUri
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.multiplatform.webview.web.LoadingState
 import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.rememberSaveableWebViewState
@@ -45,7 +54,10 @@ import com.ycngmn.nobook.utils.fileChooserWebViewParams
 import com.ycngmn.nobook.utils.jsBridge.ClipboardBridge
 import com.ycngmn.nobook.utils.jsBridge.DownloadBridge
 import com.ycngmn.nobook.utils.jsBridge.NobookSettings
+import com.ycngmn.nobook.utils.jsBridge.PhotoViewerBridge
+import com.ycngmn.nobook.utils.jsBridge.ShareBridge
 import com.ycngmn.nobook.utils.jsBridge.ThemeChange
+import com.ycngmn.nobook.utils.jsBridge.VideoPlaybackBridge
 import com.ycngmn.nobook.utils.rememberAutoDesktop
 import com.ycngmn.nobook.utils.rememberImeHeight
 import kotlinx.coroutines.delay
@@ -58,6 +70,7 @@ fun NobookWebView(
     val context = LocalContext.current
     val activity = LocalActivity.current
     val resources = LocalResources.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     val state = rememberSaveableWebViewState(url)
     val navigator = rememberWebViewNavigator(
@@ -113,6 +126,7 @@ fun NobookWebView(
     }
 
     val isDesktop by settingsVM.desktopLayout.collectAsState()
+    val fontZoom by settingsVM.fontZoom.collectAsState()
     val isAutoRevert by settingsVM.isRevertDesktop.collectAsState()
     val isAutoDesktop = rememberAutoDesktop()
 
@@ -213,34 +227,89 @@ fun NobookWebView(
     }
 
 
-    LaunchedEffect(isDesktop) {
+    var nativeWebView by remember { mutableStateOf<android.webkit.WebView?>(null) }
+
+    LaunchedEffect(isDesktop, nativeWebView) {
         val userAgent = if (isDesktop) DESKTOP_USER_AGENT else ""
-        state.nativeWebView.settings.userAgentString = userAgent
+        nativeWebView?.settings?.userAgentString = userAgent
+    }
+
+    LaunchedEffect(nativeWebView, fontZoom) {
+        val webView = nativeWebView ?: return@LaunchedEffect
+        webView.settings.textZoom = fontZoom
+        webView.evaluateJavascript(
+            "window.__nobookFontZoom=$fontZoom;window.__nobookApplyFontZoomCompat?.($fontZoom);",
+            null
+        )
+    }
+
+    DisposableEffect(lifecycleOwner, nativeWebView) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> {
+                    Log.d("NobookVideoWake", "Lifecycle ON_RESUME")
+                }
+                Lifecycle.Event.ON_PAUSE -> {
+                    nativeWebView?.keepScreenOn = false
+                    Log.d(
+                        "NobookVideoWake",
+                        "Lifecycle ON_PAUSE; keepScreenOn=${nativeWebView?.keepScreenOn}"
+                    )
+                }
+                else -> Unit
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            nativeWebView?.keepScreenOn = false
+        }
     }
 
     // needed to consume extra padding when keyboard is open
+    val density = LocalDensity.current
     val barsInsets = WindowInsets.systemBars.asPaddingValues()
     val imeHeight = rememberImeHeight()
+    val photoViewerOpen = remember { mutableStateOf(false) }
+    val appliedIme = if (photoViewerOpen.value) 0.dp else imeHeight
+    val shareBridge = remember(context) { ShareBridge(context) }
 
-    WebView(
+    LaunchedEffect(appliedIme, imeHeight, nativeWebView) {
+        val webView = nativeWebView ?: return@LaunchedEffect
+        val appliedPx = with(density) { appliedIme.roundToPx() }
+        val rawPx = with(density) { imeHeight.roundToPx() }
+        webView.evaluateJavascript(
+            "window.__nobookImeBottomPx=$appliedPx;window.__nobookImeRawPx=$rawPx;",
+            null
+        )
+    }
+
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .background(themeColor)
             .then(
                 if (isImmersiveMode) {
-                    Modifier.padding(bottom = imeHeight)
+                    Modifier.padding(bottom = appliedIme)
                 } else {
                     Modifier.padding(
                         top = barsInsets.calculateTopPadding(),
-                        bottom = maxOf(barsInsets.calculateBottomPadding(), imeHeight)
+                        bottom = maxOf(barsInsets.calculateBottomPadding(), appliedIme)
                     )
                 }
-            ),
+            )
+    ) {
+    WebView(
+        modifier = Modifier
+            .weight(1f)
+            .fillMaxWidth()
+            .background(themeColor),
         state = state,
         navigator = navigator,
         platformWebViewParams = fileChooserWebViewParams(),
         captureBackPresses = false,
         onCreated = { webView ->
+            nativeWebView = webView
 
             val cookieManager = CookieManager.getInstance()
             cookieManager.setAcceptCookie(true)
@@ -275,6 +344,29 @@ fun NobookWebView(
                     ClipboardBridge(context),
                     "ClipboardBridge"
                 )
+                addJavascriptInterface(
+                    shareBridge,
+                    "ShareBridge"
+                )
+                addJavascriptInterface(
+                    PhotoViewerBridge { open ->
+                        post { photoViewerOpen.value = open }
+                    },
+                    "PhotoViewerBridge"
+                )
+                addJavascriptInterface(
+                    VideoPlaybackBridge { isPlaying ->
+                        Log.d("NobookVideoWake", "Bridge callback active=$isPlaying")
+                        post {
+                            keepScreenOn = isPlaying
+                            Log.d(
+                                "NobookVideoWake",
+                                "Bridge applied active=$isPlaying; keepScreenOn=$keepScreenOn"
+                            )
+                        }
+                    },
+                    "VideoPlaybackBridge"
+                )
 
                 setLayerType(View.LAYER_TYPE_HARDWARE, null)
 
@@ -288,4 +380,5 @@ fun NobookWebView(
             }
         }
     )
+    }
 }

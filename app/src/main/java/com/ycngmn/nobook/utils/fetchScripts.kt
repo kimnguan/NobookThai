@@ -1,6 +1,7 @@
 package com.ycngmn.nobook.utils
 
 import androidx.annotation.RawRes
+import com.ycngmn.nobook.BuildConfig
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
@@ -8,7 +9,7 @@ import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
 
 
-const val SCRIPT_SRC = "https://raw.githubusercontent.com/ycngmn/Nobook/refs/heads/main/app/src/main/res/raw/"
+const val SCRIPT_SRC = "https://raw.githubusercontent.com/kimnguan/NobookThai/refs/heads/main/app/src/main/res/raw/"
 
 data class Script(
     val isEnabled: Boolean,
@@ -20,6 +21,14 @@ suspend fun fetchScripts(
     scripts: List<Script>,
     fallbackContent: (Int) -> String
 ): String {
+    if (BuildConfig.DEBUG) {
+        return buildString {
+            scripts.filter { it.isEnabled }.forEach { script ->
+                append(fallbackContent(script.resourceId))
+            }
+        }
+    }
+
     val httpClient = HttpClient(OkHttp)
     return buildString {
         scripts.filter { it.isEnabled }.forEach { script ->

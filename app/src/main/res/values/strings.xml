@@ -1,13 +1,19 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Nobook</string>
     <string name="apply_immediately">Apply Immediately?</string>
     <string name="remove_ads_title">Remove ads</string>
+    <string name="share_to_other_apps" tools:ignore="MissingTranslation">Share to other apps</string>
+    <string name="hide_ai_content_title" tools:ignore="MissingTranslation">Hide AI flagged content</string>
+    <string name="hide_ai_content_description" tools:ignore="MissingTranslation">Hide flagged AI content from Feed, Stories, and Reels</string>
     <string name="download_content_title">Download contents</string>
     <string name="copy_to_clipboard_title">Copy to clipboard</string>
     <string name="desktop_layout_title">Desktop layout</string>
     <string name="immersive_mode_title">Immersive mode</string>
     <string name="sticky_navbar_title">Sticky Navbar</string>
     <string name="pinch_to_zoom_title">Pinch to zoom</string>
+    <string name="font_size_title" tools:ignore="MissingTranslation">Font size</string>
+    <string name="font_size_value" tools:ignore="MissingTranslation">Web content text size: %1$d%%</string>
+    <string name="choose_font_size" tools:ignore="MissingTranslation">Choose font size</string>
     <string name="amoled_black_title">AMOLED Black</string>
     <string name="customize_feed_title">Customize feed</string>
     <string name="network_error_title">Connect to a network</string>
@@ -17,9 +23,11 @@
     <string name="download_failed_invalid_data">Download failed: Invalid data</string>
     <string name="failed_to_save_file">Failed to save file</string>
     <string name="image_copied_to_clipboard">Image copied to clipboard</string>
+    <string name="text_copied_to_clipboard">Text copied</string>
     <string name="copy_failed_invalid_data">Copy failed: Invalid data</string>
     <string name="copy_failed_invalid_image">Copy failed: Invalid image</string>
     <string name="failed_to_copy_image">Failed to copy image</string>
+    <string name="failed_to_copy_text">Failed to copy text</string>
     <string name="clipboard_not_supported">Clipboard not supported on this version</string>
     <string name="suggested_posts">Suggested posts</string>
     <string name="reels">Reels</string>

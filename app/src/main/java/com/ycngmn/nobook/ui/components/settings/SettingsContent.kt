@@ -27,8 +27,10 @@ import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.PanoramaWideAngle
 import androidx.compose.material.icons.outlined.Pinch
 import androidx.compose.material.icons.outlined.Shield
+import androidx.compose.material.icons.outlined.TextFields
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -62,14 +64,17 @@ fun SettingsContent(
 ) {
     val context = LocalContext.current
     var isOpenDialog by rememberSaveable { mutableStateOf(false) }
+    var isFontZoomDialogOpen by rememberSaveable { mutableStateOf(false) }
 
     val removeAds = viewModel.removeAds.collectAsState()
+    val hideAiContent = viewModel.hideAiContent.collectAsState()
     val enableDownloadContent = viewModel.enableDownloadContent.collectAsState()
     val enableCopyToClipboard = viewModel.enableCopyToClipboard.collectAsState()
     val desktopLayout = viewModel.desktopLayout.collectAsState()
     val immersiveMode = viewModel.immersiveMode.collectAsState()
     val stickyNavbar = viewModel.stickyNavbar.collectAsState()
     val pinchToZoom = viewModel.pinchToZoom.collectAsState()
+    val fontZoom = viewModel.fontZoom.collectAsState()
     val amoledBlack = viewModel.amoledBlack.collectAsState()
 
     val isAutoDesktop = rememberAutoDesktop()
@@ -86,6 +91,13 @@ fun SettingsContent(
                     supportingText = stringResource(R.string.hide_sponsored_ads_from_your_feed),
                     isActive = removeAds.value,
                     onClick = { viewModel.setRemoveAds(!removeAds.value) },
+                ),
+                SettingsItem(
+                    icon = Icons.Outlined.Shield,
+                    title = stringResource(R.string.hide_ai_content_title),
+                    supportingText = stringResource(R.string.hide_ai_content_description),
+                    isActive = hideAiContent.value,
+                    onClick = { viewModel.setHideAiContent(!hideAiContent.value) },
                 ),
                 SettingsItem(
                     icon = Icons.Outlined.FileDownload,
@@ -119,6 +131,13 @@ fun SettingsContent(
                     supportingText = stringResource(R.string.use_two_fingers_to_zoom_in_or_out),
                     isActive = pinchToZoom.value,
                     onClick = { viewModel.setPinchToZoom(!pinchToZoom.value) }
+                ),
+                SettingsItem(
+                    icon = Icons.Outlined.TextFields,
+                    title = stringResource(R.string.font_size_title),
+                    supportingText = stringResource(R.string.font_size_value, fontZoom.value),
+                    isActive = null,
+                    onClick = { isFontZoomDialogOpen = true }
                 ),
                 SettingsItem(
                     icon = Icons.Outlined.DesktopWindows,
@@ -179,6 +198,55 @@ fun SettingsContent(
         )
     }
 
+    if (isFontZoomDialogOpen) {
+        FontZoomDialog(
+            selectedZoom = fontZoom.value,
+            onSelected = {
+                viewModel.setFontZoom(it)
+                isFontZoomDialogOpen = false
+            },
+            onDismiss = { isFontZoomDialogOpen = false }
+        )
+    }
+
+}
+
+@Composable
+private fun FontZoomDialog(
+    selectedZoom: Int,
+    onSelected: (Int) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .clip(RoundedCornerShape(24.dp))
+                .background(color = MaterialTheme.colorScheme.surfaceContainer)
+                .padding(vertical = 16.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.choose_font_size),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
+            )
+
+            listOf(85, 100, 115, 130, 145).forEach { zoom ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onSelected(zoom) }
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = selectedZoom == zoom,
+                        onClick = { onSelected(zoom) }
+                    )
+                    Text(text = "$zoom%", modifier = Modifier.padding(start = 12.dp))
+                }
+            }
+        }
+    }
 }
 
 @Composable

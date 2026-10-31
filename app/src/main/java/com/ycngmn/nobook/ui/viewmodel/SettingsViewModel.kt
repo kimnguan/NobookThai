@@ -8,7 +8,9 @@ import com.ycngmn.nobook.data.local.SettingsDataStore.Companion.AMOLED_BLACK
 import com.ycngmn.nobook.data.local.SettingsDataStore.Companion.DESKTOP_LAYOUT
 import com.ycngmn.nobook.data.local.SettingsDataStore.Companion.ENABLE_COPY_TO_CLIPBOARD
 import com.ycngmn.nobook.data.local.SettingsDataStore.Companion.ENABLE_DOWNLOAD_CONTENT
+import com.ycngmn.nobook.data.local.SettingsDataStore.Companion.FONT_ZOOM
 import com.ycngmn.nobook.data.local.SettingsDataStore.Companion.HIDE_GROUPS
+import com.ycngmn.nobook.data.local.SettingsDataStore.Companion.HIDE_AI_CONTENT
 import com.ycngmn.nobook.data.local.SettingsDataStore.Companion.HIDE_PEOPLE_YOU_MAY_KNOW
 import com.ycngmn.nobook.data.local.SettingsDataStore.Companion.HIDE_REELS
 import com.ycngmn.nobook.data.local.SettingsDataStore.Companion.HIDE_STORIES
@@ -67,6 +69,11 @@ class SettingsViewModel(
         initialValue = initialPrefs[PINCH_TO_ZOOM] ?: false,
         started = SharingStarted.WhileSubscribed()
     )
+    val fontZoom = dataStore.fontZoom.stateIn(
+        scope = viewModelScope,
+        initialValue = initialPrefs[FONT_ZOOM] ?: 100,
+        started = SharingStarted.WhileSubscribed()
+    )
     val amoledBlack = dataStore.amoledBlack.stateIn(
         scope = viewModelScope,
         initialValue = initialPrefs[AMOLED_BLACK] ?: false,
@@ -75,6 +82,11 @@ class SettingsViewModel(
     val hideSuggested = dataStore.hideSuggested.stateIn(
         scope = viewModelScope,
         initialValue = initialPrefs[HIDE_SUGGESTED] ?: false,
+        started = SharingStarted.WhileSubscribed()
+    )
+    val hideAiContent = dataStore.hideAiContent.stateIn(
+        scope = viewModelScope,
+        initialValue = initialPrefs[HIDE_AI_CONTENT] ?: false,
         started = SharingStarted.WhileSubscribed()
     )
     val hideReels = dataStore.hideReels.stateIn(
@@ -145,6 +157,12 @@ class SettingsViewModel(
         }
     }
 
+    fun setFontZoom(fontZoom: Int) {
+        viewModelScope.launch {
+            dataStore.setFontZoom(fontZoom)
+        }
+    }
+
     fun setAmoledBlack(amoledBlack: Boolean) {
         viewModelScope.launch {
             dataStore.setAmoledBlack(amoledBlack)
@@ -154,6 +172,12 @@ class SettingsViewModel(
     fun setHideSuggested(hideSuggested: Boolean) {
         viewModelScope.launch {
             dataStore.setHideSuggested(hideSuggested)
+        }
+    }
+
+    fun setHideAiContent(hideAiContent: Boolean) {
+        viewModelScope.launch {
+            dataStore.setHideAiContent(hideAiContent)
         }
     }
 

@@ -4,6 +4,8 @@ import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
+import android.webkit.ConsoleMessage
 import android.webkit.ValueCallback
 import android.webkit.WebView
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -99,5 +101,11 @@ private class FileChoosableWebChromeClient(
     fun cancelFileChooser() {
         filePathCallback?.onReceiveValue(null)
         filePathCallback = null
+    }
+
+    override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
+        val text = consoleMessage?.message().orEmpty()
+        if (text.contains("NobookPhotoViewer")) Log.d("NobookPhotoViewer", text)
+        return super.onConsoleMessage(consoleMessage)
     }
 }

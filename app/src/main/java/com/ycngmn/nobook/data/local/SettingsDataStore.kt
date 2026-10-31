@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.map
 
@@ -19,8 +20,10 @@ class SettingsDataStore(private val context: Context) {
         val IMMERSIVE_MODE = booleanPreferencesKey("immersive_mode")
         val STICKY_NAVBAR = booleanPreferencesKey("sticky_navbar")
         val PINCH_TO_ZOOM = booleanPreferencesKey("pinch_to_zoom")
+        val FONT_ZOOM = intPreferencesKey("font_zoom")
         val AMOLED_BLACK = booleanPreferencesKey("amoled_black")
         val HIDE_SUGGESTED = booleanPreferencesKey("hide_suggestion")
+        val HIDE_AI_CONTENT = booleanPreferencesKey("hide_ai_content")
         val HIDE_REELS = booleanPreferencesKey("hide_reels")
         val HIDE_STORIES = booleanPreferencesKey("hide_stories")
         val HIDE_PEOPLE_YOU_MAY_KNOW = booleanPreferencesKey("hide_people_you_may_know")
@@ -70,6 +73,12 @@ class SettingsDataStore(private val context: Context) {
         context.dataStore.edit { it[PINCH_TO_ZOOM] = pinchToZoom }
     }
 
+    val fontZoom = context.dataStore.data.map { it[FONT_ZOOM] ?: 100 }
+    suspend fun setFontZoom(fontZoom: Int) {
+        require(fontZoom in setOf(85, 100, 115, 130, 145))
+        context.dataStore.edit { it[FONT_ZOOM] = fontZoom }
+    }
+
     val amoledBlack = context.dataStore.data.map { it[AMOLED_BLACK] ?: false }
     suspend fun setAmoledBlack(amoledBlack: Boolean) {
         context.dataStore.edit { it[AMOLED_BLACK] = amoledBlack }
@@ -78,6 +87,11 @@ class SettingsDataStore(private val context: Context) {
     val hideSuggested = context.dataStore.data.map { it[HIDE_SUGGESTED] ?: false }
     suspend fun setHideSuggested(hideSuggestion: Boolean) {
         context.dataStore.edit { it[HIDE_SUGGESTED] = hideSuggestion }
+    }
+
+    val hideAiContent = context.dataStore.data.map { it[HIDE_AI_CONTENT] ?: false }
+    suspend fun setHideAiContent(hideAiContent: Boolean) {
+        context.dataStore.edit { it[HIDE_AI_CONTENT] = hideAiContent }
     }
 
     val hideReels = context.dataStore.data.map { it[HIDE_REELS] ?: false }
